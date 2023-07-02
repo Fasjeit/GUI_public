@@ -3,11 +3,13 @@
 
 #include "scheme.h"
 
-//#define QUARTZ1273
-//#define QUARTZ103
-//#define QUARTZ95
-//#define QUARTZ94
-//#define QUARTZ96
+#define _NO_OPENSSL_
+
+// #define QUARTZ1273
+// #define QUARTZ103
+// #define QUARTZ95
+// #define QUARTZ94
+// #define QUARTZ96
 
 #ifndef QUARTZ96
 #ifndef QUARTZ59556
@@ -18,7 +20,7 @@
 #ifndef QUARTZ103
 #ifndef QUARTZ128
 #define QUARTZ96
-//#define QUARTZ127
+// #define QUARTZ127
 #endif
 #endif
 #endif
@@ -27,8 +29,6 @@
 #endif
 #endif
 #endif
-
-
 
 #ifdef QUARTZ96
 #define CORE_SIZE 96
@@ -42,7 +42,6 @@
 
 #endif // end of QUARTZ59556
 
-
 #ifdef QUARTZ59556
 #define CORE_SIZE 95
 #define MAX_DEG 5
@@ -54,7 +53,6 @@
 #define SECKEY_BYTES 3150
 
 #endif // end of QUARTZ59556
-
 
 #ifdef QUARTZ1273
 #define CORE_SIZE 127
@@ -68,7 +66,6 @@
 
 #endif // end of QUARTZ1273
 
-
 #ifdef QUARTZ127
 #define CORE_SIZE 127
 #define MAX_DEG 9
@@ -81,7 +78,6 @@
 
 #endif // end of QUARTZ127
 
-
 #ifdef QUARTZ128
 #define CORE_SIZE 128
 #define MAX_DEG 9
@@ -93,8 +89,6 @@
 #define SECKEY_BYTES 6336
 
 #endif // end of QUARTZ128
-
-
 
 #ifdef QUARTZ103
 #define CORE_SIZE 103
@@ -120,7 +114,6 @@
 
 #endif // end of QUARTZ95
 
-
 #ifdef QUARTZ94
 #define CORE_SIZE 94
 #define MAX_DEG 17
@@ -132,23 +125,18 @@
 #define SECKEY_BYTES 2943
 #endif // end of QUARTZ94
 
+#define N (CORE_SIZE + VINEGAR)
+#define M (CORE_SIZE - MINUS)
 
-#define N (CORE_SIZE+VINEGAR)
-#define M (CORE_SIZE-MINUS)
-
-#define SECMSG_BYTES (((M+(MINUS+VINEGAR)*REPEAT)+7)/8)
-
+#define SECMSG_BYTES (((M + (MINUS + VINEGAR) * REPEAT) + 7) / 8)
 
 #define S_WIDTH N
 #define T_WIDTH CORE_SIZE
 
-#define PUBKEY_NUM_TERMS ((N)*(N+1)/2)
+#define PUBKEY_NUM_TERMS ((N) * (N + 1) / 2)
 
-#define SIZE_BYTE_M ((M+7)>>3)
-#define SIZE_BYTE_N ((N+7)>>3)
-#define SIZE_BYTE_CORE ((CORE_SIZE+7)>>3)
-
-
-
+#define SIZE_BYTE_M ((M + 7) >> 3)
+#define SIZE_BYTE_N ((N + 7) >> 3)
+#define SIZE_BYTE_CORE ((CORE_SIZE + 7) >> 3)
 
 #endif

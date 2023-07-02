@@ -34,10 +34,10 @@ ifdef HFE
 endif
 	
 
-ifdef DEBUG
-        CFLAGS+=  -D_DEBUG_
-        CXXFLAGS+= -D_DEBUG_
-endif
+#ifdef DEBUG
+        CFLAGS+= -g -D_DEBUG_
+        CXXFLAGS+= -g -D_DEBUG_
+#endif
 
 ifdef NO_SSE
 	CFLAGS += -D_NO_SSE_

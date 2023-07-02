@@ -3,7 +3,7 @@ CXX=   g++
 LD=    g++
 
 CFLAGS= -O3 -mssse3 -mpclmul -std=gnu99 -Wall -Wextra
-CXXFLAGS= -O3 -mssse3 -mpclmul -Wall -Wextra
+CXXFLAGS= -O3 -mssse3 -mpclmul -Wall -Wextra -fPIC
 #CXXFLAGS= -O2 -mssse3 -mpclmul -Wall -Wextra -fno-exceptions -fno-rtti
 INCPATH= -I/usr/local/include -I/opt/local/include -I/usr/include
 LDFLAGS= 
@@ -36,11 +36,11 @@ ifdef HFE
 endif
 	
 
-ifdef DEBUG
+#ifdef DEBUG
         CFLAGS+=  -g -D_DEBUG_
         CXXFLAGS+= -g -D_DEBUG_
 	LDFLAGS += -g
-endif
+#endif
 
 ifdef NO_SSE
 	CFLAGS += -D_NO_SSE_

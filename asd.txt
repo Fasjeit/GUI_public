@@ -1,0 +1,13 @@
+sudo apt-get install libssl-dev
+
+
+connected to wls, installed makefile extension and set debug with -g and other flags
+
+
+
+links on how to link assemblies
+https://iq.opengenus.org/create-shared-library-in-cpp/
+https://www.cprogramming.com/tutorial/shared-libraries-linux-gcc.html
+
+
+now 96566 working and buiding wrapper (generic one) also working

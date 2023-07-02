@@ -8,16 +8,18 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-static inline
-void RAND_bytes( unsigned char* buff, unsigned s )
+static inline void RAND_bytes(unsigned char *buff, unsigned s)
 {
-	union{
-	unsigned char v8[4];
-	uint32_t v32;
+	union
+	{
+		unsigned char v8[4];
+		uint32_t v32;
 	};
-	for(unsigned i=0;i<s;i++){
-		if( 0==(i&1) ) v32 = rand();
-		buff[i]=v8[i&1];
+	for (unsigned i = 0; i < s; i++)
+	{
+		if (0 == (i & 1))
+			v32 = rand();
+		buff[i] = v8[i & 1];
 	}
 }
 
