@@ -71,6 +71,27 @@ extern "C" int signatureofshorthash_mq(unsigned char sm[SIGNATURE_BYTES], unsign
 	return 0;
 }
 
+extern "C" int hfev(
+	const unsigned char sk[SECRETKEY_BYTES],
+	unsigned long long sklen,
+	unsigned char s[M / 8 + 1],
+	unsigned long long slen,
+	unsigned char x[(MINUS + VINEGAR) / 8 + 1],
+	unsigned long long xlen)
+{
+	if (sklen != SECRETKEY_BYTES)
+		return -11;
+	if (slen != M / 8 + 1)
+		return -12;
+	if (xlen != (MINUS + VINEGAR) / 8 + 1)
+		return -13;
+
+	quartz_sec_key_t skey;
+	skey.set(sk);
+
+	return quartz_sign_hfev<0, 0>(skey, s, x);
+}
+
 extern "C" int verification(const unsigned char m[SHORTHASH_BYTES], const unsigned long long mlen,
 							const unsigned char sm[SIGNATURE_BYTES], const unsigned long long smlen,
 							const unsigned char pk[PUBLICKEY_BYTES], const unsigned long long pklen)

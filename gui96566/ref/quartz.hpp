@@ -108,6 +108,7 @@ int quartz_sign_mq(vec_sign_t &sm, const unsigned char *hash256, const quartz_se
 		// S = accu_mm
 		// nn = output (S_i, X_i)
 		// tail - seqs of (a-v) bytes of X_i represented as uint64_t (each time shifted)
+		// nn - putput of hfev-
 		// nn.template concate<M>(); - get fist m bits
 
 		// D_i \oplus S_i
@@ -126,6 +127,10 @@ int quartz_sign_mq(vec_sign_t &sm, const unsigned char *hash256, const quartz_se
 
 		std::string binaryT = std::bitset<sizeof(uint64_t) * 8>(tail).to_string(); // to binary
 		std::cout << binaryT << " tail T\n";
+
+		uint64_t acuUintT = accu_mm.template tail<M>();
+		std::string accT = std::bitset<sizeof(uint64_t) * 8>(acuUintT).to_string(); // to binary
+		std::cout << accT << " tail current accu _mm (S)\n";
 	}
 
 	sm = accu_mm.template concate<M + times *(MINUS + VINEGAR)>(tail);
@@ -142,9 +147,44 @@ int quartz_sign_mq(vec_sign_t &sm, const unsigned char *hash256, const quartz_se
 	std::string binarySM2 = std::bitset<sizeof(uint64_t) * 8>(smUint).to_string(); // to binary
 	std::cout << binarySM2 << " tail SM2\n";
 
-	accu_mm.dump(sigma_s);
+	if (sigma_s != NULL)
+	{
+		accu_mm.dump(sigma_s);
+	}
 
 	memcpy(x, &tail, sizeof(tail));
+
+	return 0;
+}
+
+template <unsigned width, unsigned times>
+int quartz_sign_hfev(
+	const quartz_sec_key_t &sk,
+	unsigned char s[M / 8 + 1],
+	unsigned char x[(MINUS + VINEGAR) / 8 + 1])
+{
+	uint8_t rand_seed[32];
+	uint64_t tail = 0;
+
+	vec_n_t nn;
+	vec_m_t accu_mm;
+
+	accu_mm = vec_m_t(s);
+
+	memset(rand_seed, 0, 32);
+	((vec_m_t &)rand_seed) ^= accu_mm;
+
+	quartz_sec_map(nn, sk, accu_mm, rand_seed);
+
+	accu_mm = nn.template concate<M>();
+	uint64_t tmp = nn.template tail<MINUS + VINEGAR>();
+
+	accu_mm.dump(s);
+	memcpy(x, &tmp, sizeof(tmp));
+
+	uint64_t acuUint = accu_mm.template tail<M>();
+	std::string binaryM = std::bitset<sizeof(uint64_t) * 8>(acuUint).to_string(); // to binary
+	std::cout << binaryM << " tail accu_mm (S)\n";
 
 	return 0;
 }
