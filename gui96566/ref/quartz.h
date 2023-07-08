@@ -34,6 +34,14 @@ extern "C"
       unsigned char *x,
       unsigned long long xlen);
 
+  int hfev_inv(
+      const unsigned char *pk,
+      unsigned long long pklen,
+      unsigned char *s,
+      unsigned long long slen,
+      unsigned char *x,
+      unsigned long long xlen);
+
   // #ifdef __cplusplus
 }
 // #endif

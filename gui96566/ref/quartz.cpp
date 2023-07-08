@@ -92,6 +92,27 @@ extern "C" int hfev(
 	return quartz_sign_hfev<0, 0>(skey, s, x);
 }
 
+extern "C" int hfev_inv(
+	const unsigned char pk[PUBKEY_BYTES],
+	unsigned long long pkLen,
+	unsigned char s[M / 8 + 1],
+	unsigned long long slen,
+	unsigned char x[(MINUS + VINEGAR) / 8 + 1],
+	unsigned long long xlen)
+{
+	if (pkLen != PUBKEY_BYTES)
+		return -11;
+	if (slen != M / 8 + 1)
+		return -12;
+	if (xlen != (MINUS + VINEGAR) / 8 + 1)
+		return -13;
+
+	quartz_pub_key_t pkey;
+	pkey.set(pk);
+
+	return quartz_validate_hfev<0, 0>(pkey, s, x);
+}
+
 extern "C" int verification(const unsigned char m[SHORTHASH_BYTES], const unsigned long long mlen,
 							const unsigned char sm[SIGNATURE_BYTES], const unsigned long long smlen,
 							const unsigned char pk[PUBLICKEY_BYTES], const unsigned long long pklen)

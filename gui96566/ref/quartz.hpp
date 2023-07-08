@@ -237,4 +237,26 @@ int quartz_sign_hfev(
 	return 0;
 }
 
+template <unsigned width, unsigned times>
+int quartz_validate_hfev(
+	const quartz_pub_key_t &pk,
+	unsigned char s[M / 8 + 1],
+	unsigned char x[(MINUS + VINEGAR) / 8 + 1])
+{
+	uint64_t tmp = 0;
+	memcpy(&tmp, x, (MINUS + VINEGAR) / 8 + 1);
+
+	vec_n_t nn;
+	vec_m_t accu_check;
+
+	accu_check = vec_m_t(s);
+
+	nn = accu_check.concate<M + MINUS + VINEGAR>(tmp);
+	mpkc_pub_map(accu_check, pk, nn);
+
+	accu_check.dump(s);
+
+	return 0;
+}
+
 #endif /// _QUARTZ_HPP_
