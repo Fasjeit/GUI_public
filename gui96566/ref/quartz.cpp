@@ -49,6 +49,27 @@ extern "C" int signatureofshorthash(unsigned char sm[SIGNATURE_BYTES], unsigned 
 	return 0;
 }
 
+extern "C" int signatureofshorthash_mq(unsigned char sm[SIGNATURE_BYTES], unsigned long long *smlen,
+									   const unsigned char m[SHORTHASH_BYTES], const unsigned long long mlen,
+									   const unsigned char sk[SECRETKEY_BYTES], const unsigned long long sklen)
+{
+	if (sklen != SECRETKEY_BYTES)
+		return -11;
+	if (mlen != SHORTHASH_BYTES)
+		return -12;
+
+	quartz_sec_key_t skey;
+	skey.set(sk);
+
+	vec_sign_t signature;
+	quartz_sign_mq<REPEAT>(signature, m, skey);
+
+	signature.dump(sm);
+	*smlen = vec_sign_t::num_byte();
+
+	return 0;
+}
+
 extern "C" int verification(const unsigned char m[SHORTHASH_BYTES], const unsigned long long mlen,
 							const unsigned char sm[SIGNATURE_BYTES], const unsigned long long smlen,
 							const unsigned char pk[PUBLICKEY_BYTES], const unsigned long long pklen)

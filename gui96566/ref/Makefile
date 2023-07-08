@@ -2,8 +2,8 @@ CC=    gcc
 CXX=   g++
 LD=    g++
 
-CFLAGS= -w -O3 -mssse3 -mpclmul -std=gnu99 -Wall -Wextra -fPIC
-CXXFLAGS= -w -O3 -mssse3 -mpclmul -Wall -Wextra -fPIC
+CFLAGS= -w -O0 -mssse3 -mpclmul -std=gnu99 -Wall -Wextra -fPIC
+CXXFLAGS= -w -O0 -mssse3 -mpclmul -Wall -Wextra -fPIC
 #CXXFLAGS= -O2 -mssse3 -mpclmul -Wall -Wextra -fno-exceptions -fno-rtti
 INCPATH= -I/usr/local/include -I/opt/local/include -I/usr/include
 LDFLAGS= 
@@ -37,9 +37,9 @@ endif
 	
 
 #ifdef DEBUG
-        CFLAGS+=  -g -D_DEBUG_
-        CXXFLAGS+= -g -D_DEBUG_
-	LDFLAGS += -g
+        CFLAGS+=  -g3 -D_DEBUG_
+        CXXFLAGS+= -g3 -D_DEBUG_
+	LDFLAGS += -g3
 #endif
 
 ifdef NO_SSE
@@ -66,11 +66,14 @@ endif
 .PHONY: all tests tables clean
 
 all: $(OBJ)
+	$(info $$CXXFLAGS is [${CXXFLAGS}])
+	$(info $$LDFLAGS is [${LDFLAGS}])
+	$(info $$CXXFLAGS is [${CXXFLAGS}])
 	$(CC) -shared $(CXXFLAGS) -o libquartz.so $(OBJ)
 	
 exe:
-	$(CXX) -c -w -fpic exec.c
-	$(CC) $(CXXFLAGS) -o exec exec.o $(OBJ)
+	$(CXX) -g3 -c -w -fpic exec.c
+	$(CC) $(CXXFLAGS) -o exec exec.o $(OBJ) -lstdc++
 
 %-test: $(OBJ) %-test.o
 	$(LD) $(LDFLAGS) $(LIBPATH) -o $@ $^ $(LIBS)
@@ -82,5 +85,5 @@ exe:
 	$(CXX) $(CXXFLAGS) $(INCPATH) -c $<
 
 clean:
-	rm *.o; rm *.so
+	rm *.o; rm *.so; rm exec
 

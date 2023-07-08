@@ -10,9 +10,16 @@ int main()
     unsigned char pk[PUBLICKEY_BYTES];
     unsigned long long pklen = 0;
 
-    keypair(sk, &sklen, pk, &pklen);
+    unsigned char sm[SIGNATURE_BYTES];
+    unsigned long long smlen;
 
-    printf("hello? %d\n", sklen);
+    unsigned char m[SHORTHASH_BYTES];
+    unsigned long long mlen = SHORTHASH_BYTES;
+
+    keypair(sk, &sklen, pk, &pklen);
+    signatureofshorthash_mq(sm, &smlen, m, mlen, sk, sklen);
+
+    printf("hello??? %d\n", sklen);
 
     return 0;
 }

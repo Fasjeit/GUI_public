@@ -17,6 +17,10 @@ extern "C"
                            const unsigned char *, unsigned long long,
                            const unsigned char *, unsigned long long);
 
+  int signatureofshorthash_mq(unsigned char *, unsigned long long *,
+                              const unsigned char *, unsigned long long,
+                              const unsigned char *, unsigned long long);
+
   int verification(const unsigned char *, unsigned long long,
                    const unsigned char *, unsigned long long,
                    const unsigned char *, unsigned long long);
