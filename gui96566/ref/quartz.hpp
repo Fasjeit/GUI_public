@@ -26,6 +26,32 @@ inline void split_hash(VEC<width> hn[], const uint8_t *sha256_dig)
 
 typedef VEC<M + REPEAT *(MINUS + VINEGAR)> vec_sign_t;
 
+template <unsigned size>
+void dump_dbg(VEC<size> v)
+{
+	unsigned char res[size];
+	v.dump(res);
+
+	unsigned long len = v.num_byte();
+	std::string result_inverted[len];
+
+	std::cout << "forward0:\n";
+	for (int i = 0; i < len; i++)
+	{
+		std::string binary = std::bitset<sizeof(char) * 8>(res[i]).to_string(); // to binary
+		result_inverted[len - i - 1] = binary;
+		std::cout << binary;
+	}
+	std::cout << "\n";
+
+	std::cout << "reversed1:\n";
+	for (int i = 0; i < len; i++)
+	{
+		std::cout << result_inverted[i];
+	}
+	std::cout << "\n";
+}
+
 template <unsigned times>
 int quartz_verify(const unsigned char *hash256, const vec_sign_t &sm, const quartz_pub_key_t &pk)
 {
@@ -131,6 +157,9 @@ int quartz_sign_mq(vec_sign_t &sm, const unsigned char *hash256, const quartz_se
 		uint64_t acuUintT = accu_mm.template tail<M>();
 		std::string accT = std::bitset<sizeof(uint64_t) * 8>(acuUintT).to_string(); // to binary
 		std::cout << accT << " tail current accu _mm (S)\n";
+
+		std::cout << "accu_mm tms is:\n";
+		dump_dbg<M>(accu_mm);
 	}
 
 	sm = accu_mm.template concate<M + times *(MINUS + VINEGAR)>(tail);
@@ -139,6 +168,9 @@ int quartz_sign_mq(vec_sign_t &sm, const unsigned char *hash256, const quartz_se
 	std::string binaryM = std::bitset<sizeof(uint64_t) * 8>(acuUint).to_string(); // to binary
 	std::cout << binaryM << " tail accu_mm (S)\n";
 
+	std::cout << "full accu_mm is:";
+	dump_dbg<M>(accu_mm);
+
 	uint64_t smUint = sm.template tail<M + times *(MINUS + VINEGAR)>();
 	std::string binarySM = std::bitset<sizeof(uint64_t) * 8>(smUint).to_string(); // to binary
 	std::cout << binarySM << " tail SM\n";
@@ -146,6 +178,9 @@ int quartz_sign_mq(vec_sign_t &sm, const unsigned char *hash256, const quartz_se
 	uint64_t smUint2 = sm.template tail<M + times *(MINUS + VINEGAR) - sizeof(uint64_t)>();
 	std::string binarySM2 = std::bitset<sizeof(uint64_t) * 8>(smUint).to_string(); // to binary
 	std::cout << binarySM2 << " tail SM2\n";
+
+	std::cout << "full SM is:";
+	dump_dbg<126>(sm);
 
 	if (sigma_s != NULL)
 	{
@@ -180,11 +215,24 @@ int quartz_sign_hfev(
 	uint64_t tmp = nn.template tail<MINUS + VINEGAR>();
 
 	accu_mm.dump(s);
-	memcpy(x, &tmp, sizeof(tmp));
 
-	uint64_t acuUint = accu_mm.template tail<M>();
-	std::string binaryM = std::bitset<sizeof(uint64_t) * 8>(acuUint).to_string(); // to binary
-	std::cout << binaryM << " tail accu_mm (S)\n";
+	memcpy(x, &tmp, (MINUS + VINEGAR) / 8 + 1);
+
+	std::string binary = std::bitset<sizeof(uint64_t) * 8>(tmp).to_string(); // to binary
+	std::cout << binary << " tmp\n";
+
+	std::string binaryT = std::bitset<sizeof(uint64_t) * 8>(tail).to_string(); // to binary
+	std::cout << binaryT << " tail T\n";
+
+	uint64_t acuUintT = accu_mm.template tail<M>();
+	std::string accT = std::bitset<sizeof(uint64_t) * 8>(acuUintT).to_string(); // to binary
+	std::cout << accT << " tail current accu _mm (S)\n";
+
+	std::cout << "accu_mm tms is:\n";
+	dump_dbg<M>(accu_mm);
+
+	std::cout << "nn all would be is:\n";
+	dump_dbg<N>(nn);
 
 	return 0;
 }

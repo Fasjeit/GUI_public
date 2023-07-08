@@ -61,12 +61,6 @@ struct vec_u64x2
 			fprintf(fp, "0x%x,0x%x,", v32[i * 2 + 1], v32[i * 2]);
 		fprintf(fp, "]");
 	}
-	unsigned char *new_dump()
-	{
-		unsigned char res[120];
-		this->dump(res);
-		return res;
-	}
 
 	vec_t &operator&=(const vec_t &b)
 	{
