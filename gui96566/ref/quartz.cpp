@@ -131,3 +131,8 @@ extern "C" int verification(const unsigned char m[SHORTHASH_BYTES], const unsign
 
 	return quartz_verify<REPEAT>(m, signature, pkey);
 }
+
+extern "C" void crypto_hash_sha256_c(unsigned char *h, const unsigned char *m, unsigned long long mlen)
+{
+	crypto_hash_sha256(h, m, mlen);
+}

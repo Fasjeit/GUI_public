@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.ConstrainedExecution;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Security.Cryptography;
 
 namespace wrapper;
 
@@ -14,7 +15,28 @@ class Program
     {
         Console.WriteLine("Hello, World!");
 
-        // var test = new byte[] { 0, 1, 0 };
+        var test = new byte[12];
+        var hash = new byte[32];
+
+        Stopwatch swh = new Stopwatch();
+        swh.Start();
+        for (int i = 0; i < 32000; i++)
+        {
+            Program.Externc.crypto_hash_sha256_c(hash, test, test.Length);
+        }
+        swh.Stop();
+        Console.WriteLine($"c hash x32 {(swh.Elapsed / 1000).TotalMilliseconds} ms");
+        swh.Start();
+        for (int i = 0; i < 32000; i++)
+        {
+            using (var sha = SHA256.Create())
+            {
+                hash = sha.ComputeHash(test);
+            }
+        }
+        swh.Stop();
+        Console.WriteLine($"dotnet hash x32 {(swh.Elapsed / 1000).TotalMilliseconds} ms");
+        //return;
         // Console.WriteLine(ByteArrayToString(test));
 
         //var t = Program.Externc.test_function_c(7);
@@ -34,18 +56,21 @@ class Program
 
         //return;
 
-        // var keyResult = Program.Externc.keypair(
-        //     sk,
-        //     ref skLen,
-        //     pk,
-        //     ref pkLen);
+        var keyResult = Program.Externc.keypair(
+            sk,
+            ref skLen,
+            pk,
+            ref pkLen);
 
 
         var s = new byte[12] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 };
         var x = new byte[5];
 
         // new
-        sk = Constants.StaticKey;
+        // sk = Constants.StaticKey;
+        // skLen = sk.Length;
+
+
         Console.WriteLine("*************************************************** start");
         var r = Program.Externc.hfev(sk, Externc.SECRETKEY_BYTES, s, 12, x, 2);
         Console.WriteLine("*************************************************** end");
@@ -59,7 +84,7 @@ class Program
         Console.WriteLine($"{x[0]},{x[1]},{x[2]}");
         // end new
 
-        return;
+        //return;
 
         var sm = new byte[1024];
         long smlen = 0;
@@ -219,6 +244,13 @@ class Program
                     long slen,
                     byte[] x,
                     long xlen);
+
+
+        [DllImport(Externc.Libqa, EntryPoint = "crypto_hash_sha256_c", CallingConvention = CallingConvention.StdCall)]
+        internal static extern void crypto_hash_sha256_c(
+                    byte[] h,
+                    byte[] m,
+                    long mlen);
 
 
         // extern "C" int hfev(

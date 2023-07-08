@@ -42,6 +42,8 @@ extern "C"
       unsigned char *x,
       unsigned long long xlen);
 
+  void crypto_hash_sha256_c(unsigned char *h, const unsigned char *m, unsigned long long mlen);
+
   // #ifdef __cplusplus
 }
 // #endif
