@@ -51,7 +51,8 @@ extern "C" int signatureofshorthash(unsigned char sm[SIGNATURE_BYTES], unsigned 
 
 extern "C" int signatureofshorthash_mq(unsigned char sm[SIGNATURE_BYTES], unsigned long long *smlen,
 									   const unsigned char m[SHORTHASH_BYTES], const unsigned long long mlen,
-									   const unsigned char sk[SECRETKEY_BYTES], const unsigned long long sklen)
+									   const unsigned char sk[SECRETKEY_BYTES], const unsigned long long sklen,
+									   unsigned char sigma_s[M], unsigned char x[MINUS + VINEGAR])
 {
 	if (sklen != SECRETKEY_BYTES)
 		return -11;
@@ -62,7 +63,7 @@ extern "C" int signatureofshorthash_mq(unsigned char sm[SIGNATURE_BYTES], unsign
 	skey.set(sk);
 
 	vec_sign_t signature;
-	quartz_sign_mq<REPEAT>(signature, m, skey);
+	quartz_sign_mq<REPEAT>(signature, m, skey, sigma_s, x);
 
 	signature.dump(sm);
 	*smlen = vec_sign_t::num_byte();

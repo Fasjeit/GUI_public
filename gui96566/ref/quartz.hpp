@@ -4,6 +4,9 @@
 
 #include "quartz_core.h"
 
+#include <bitset>
+#include <iostream>
+
 template <unsigned width, unsigned times>
 inline void split_hash(VEC<width> hn[], const uint8_t *sha256_dig)
 {
@@ -79,7 +82,7 @@ int quartz_sign(vec_sign_t &sm, const unsigned char *hash256, const quartz_sec_k
 }
 
 template <unsigned times>
-int quartz_sign_mq(vec_sign_t &sm, const unsigned char *hash256, const quartz_sec_key_t &sk)
+int quartz_sign_mq(vec_sign_t &sm, const unsigned char *hash256, const quartz_sec_key_t &sk, unsigned char sigma_s[M], unsigned char x[MINUS + VINEGAR])
 {
 	vec_m_t hn[times];
 	split_hash<M, times>(hn, hash256);
@@ -90,12 +93,22 @@ int quartz_sign_mq(vec_sign_t &sm, const unsigned char *hash256, const quartz_se
 	vec_n_t nn;
 	vec_m_t accu_mm;
 
-	accu_mm.set_zero();
+	if (sigma_s == NULL)
+	{
+		accu_mm.set_zero();
+	}
+	else
+	{
+		accu_mm = vec_m_t(sigma_s);
+	}
 
 	for (unsigned i = 0; i < times; i++)
 	{
 		// D_i = hm
 		// S = accu_mm
+		// nn = output (S_i, X_i)
+		// tail - seqs of (a-v) bytes of X_i represented as uint64_t (each time shifted)
+		// nn.template concate<M>(); - get fist m bits
 
 		// D_i \oplus S_i
 		accu_mm ^= hn[i];
@@ -107,9 +120,31 @@ int quartz_sign_mq(vec_sign_t &sm, const unsigned char *hash256, const quartz_se
 		uint64_t tmp = nn.template tail<MINUS + VINEGAR>();
 		tail = (tail << (MINUS + VINEGAR)) | tmp;
 		accu_mm = nn.template concate<M>();
+
+		std::string binary = std::bitset<sizeof(uint64_t) * 8>(tmp).to_string(); // to binary
+		std::cout << binary << " tmp\n";
+
+		std::string binaryT = std::bitset<sizeof(uint64_t) * 8>(tail).to_string(); // to binary
+		std::cout << binaryT << " tail T\n";
 	}
 
 	sm = accu_mm.template concate<M + times *(MINUS + VINEGAR)>(tail);
+
+	uint64_t acuUint = accu_mm.template tail<M>();
+	std::string binaryM = std::bitset<sizeof(uint64_t) * 8>(acuUint).to_string(); // to binary
+	std::cout << binaryM << " tail accu_mm (S)\n";
+
+	uint64_t smUint = sm.template tail<M + times *(MINUS + VINEGAR)>();
+	std::string binarySM = std::bitset<sizeof(uint64_t) * 8>(smUint).to_string(); // to binary
+	std::cout << binarySM << " tail SM\n";
+
+	uint64_t smUint2 = sm.template tail<M + times *(MINUS + VINEGAR) - sizeof(uint64_t)>();
+	std::string binarySM2 = std::bitset<sizeof(uint64_t) * 8>(smUint).to_string(); // to binary
+	std::cout << binarySM2 << " tail SM2\n";
+
+	accu_mm.dump(sigma_s);
+
+	memcpy(x, &tail, sizeof(tail));
 
 	return 0;
 }
