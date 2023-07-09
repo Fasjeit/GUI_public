@@ -95,7 +95,7 @@ extern "C" int sign_gui_fnr(
 	quartz_sec_key_t skey;
 	skey.set(sk);
 
-	return quartz_sign_gui_fnr<2>(
+	return quartz_sign_gui_fnr<REPEAT>(
 		nonce,
 		noncelen,
 		key_material,
@@ -129,7 +129,7 @@ extern "C" int verify_gui_fnr(
 	quartz_pub_key_t pkey;
 	pkey.set(pk);
 
-	return quartz_verify_gui_fnr<2>(
+	return quartz_verify_gui_fnr<REPEAT>(
 		nonce,
 		noncelen,
 		key_material,
