@@ -17,7 +17,7 @@ LIBS=    -lm -lcrypto
 #	stat_profile.o gf2ext.o gf2ext_static.o gf2ext-sse.o blas.o\
 #	quartz_core.o
 
-OBJ = blas.o gf2ext.o gf2ext_poly.o quartz.o sha256.o library_core.o library.o
+OBJ = blas.o gf2ext.o gf2ext_poly.o quartz.o sha256.o library_core.o library.o fnr.o
 
 CSRC= $(wildcard *.cpp)
 
@@ -69,11 +69,11 @@ all: $(OBJ)
 	$(info $$CXXFLAGS is [${CXXFLAGS}])
 	$(info $$LDFLAGS is [${LDFLAGS}])
 	$(info $$CXXFLAGS is [${CXXFLAGS}])
-	$(CC) -shared $(CXXFLAGS) -o libquartz.so $(OBJ)
-	
+	$(CC) -shared $(LIBPATH) $(CXXFLAGS) -o libquartz.so $(OBJ) $(LIBS)
+
 exe:
 	$(CXX) -g3 -c -w -fpic exec.c
-	$(CC) $(CXXFLAGS) -o exec exec.o $(OBJ) -lstdc++
+	$(CC) $(CXXFLAGS)  $(LIBPATH) -o exec exec.o $(OBJ) $(LIBS) -lstdc++
 
 %-test: $(OBJ) %-test.o
 	$(LD) $(LDFLAGS) $(LIBPATH) -o $@ $^ $(LIBS)

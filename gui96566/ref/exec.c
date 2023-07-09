@@ -5,6 +5,13 @@
 #include <bitset>
 #include <iostream>
 
+#ifndef _NO_OPENSSL_
+extern "C"
+{
+#include "fnr.h"
+}
+#endif
+
 int main()
 {
     int r = 0;
@@ -3237,6 +3244,15 @@ int main()
 
     // zeros (2) | non aggregated X(12 *3 = 36)        |   aggregated S (90)
     // 00        011111001110101000001100000101100000  101001001000000001000110100000001010101000010110001111000001011110001110110100100101101100 hello??? 3175
+
+    unsigned char aes_key[] = {0, 1, 2, 3, 4, 5, 6, 7, 0, 1, 2, 3, 4, 5, 6, 7};
+    int aes_key_size = 16 * 8;
+    size_t block_size = 90;
+    // fnr_expanded_key *key = FNR_expand_key(aes_key, aes_key_size, block_size);
+    // if (!key)
+    // {
+    //     return -1;
+    // }
 
     unsigned char sigma_s[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 255}; // 90 / 8 = 12
     unsigned char output_x[5];
