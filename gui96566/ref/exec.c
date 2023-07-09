@@ -5,13 +5,6 @@
 #include <bitset>
 #include <iostream>
 
-#ifndef _NO_OPENSSL_
-extern "C"
-{
-#include "fnr.h"
-}
-#endif
-
 int main()
 {
     int r = 0;
@@ -3245,14 +3238,47 @@ int main()
     // zeros (2) | non aggregated X(12 *3 = 36)        |   aggregated S (90)
     // 00        011111001110101000001100000101100000  101001001000000001000110100000001010101000010110001111000001011110001110110100100101101100 hello??? 3175
 
+    unsigned char nonce[] = {0, 1, 2, 3};
+    unsigned char s_to_deal[] = {255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255}; // 90 bits, last is 3
+    unsigned char x_to_deal[] = {0, 0, 0, 0, 0};                                              // 90 bits, last is 3
+    // unsigned char s_res[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+    // compute fnr key(key_material)
+    // key_material = pk || m
+    const unsigned long tmps = 1;                     // PUBLICKEY_BYTES
+    const unsigned int key_material_size = tmps + 12; // 12 size of message, not s
+    unsigned char key_material[key_material_size];
+    memset(key_material, 0, key_material_size);
+    memcpy(key_material, pk, tmps);
+    memcpy(&key_material[tmps], s_to_deal, 12);
+
+    int rrrrr = sign_gui_fnr(nonce, 4, key_material, key_material_size, sk, sklen, s_to_deal, 12, x_to_deal, 5);
+    // s_to_deal[11] = 7;
+    int ttttt = verify_gui_fnr(nonce, 4, key_material, key_material_size, pk, pklen, s_to_deal, 12, x_to_deal, 5);
+
     unsigned char aes_key[] = {0, 1, 2, 3, 4, 5, 6, 7, 0, 1, 2, 3, 4, 5, 6, 7};
     int aes_key_size = 16 * 8;
     size_t block_size = 90;
-    // fnr_expanded_key *key = FNR_expand_key(aes_key, aes_key_size, block_size);
-    // if (!key)
-    // {
-    //     return -1;
-    // }
+    fnr_expanded_key *key = FNR_expand_key(aes_key, aes_key_size, block_size);
+    if (!key)
+    {
+        return -1;
+    }
+
+    unsigned char arbitrary_bytestring[] = {0, 1, 2, 3};
+    size_t length_of_bytestring = 4;
+
+    fnr_expanded_tweak tweak;
+    FNR_expand_tweak(&tweak, key, arbitrary_bytestring, length_of_bytestring);
+
+    unsigned char plaintext[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 255}; // 90 bits, last is 3
+    unsigned char ciphertext[12];
+    unsigned char plaintext_d[12];
+
+    FNR_encrypt(key, &tweak, plaintext, ciphertext);
+    FNR_decrypt(key, &tweak, ciphertext, plaintext_d);
+
+    FNR_release_key(key);
 
     unsigned char sigma_s[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 255}; // 90 / 8 = 12
     unsigned char output_x[5];

@@ -3,7 +3,7 @@
 
 #include "scheme.h"
 
-#define _NO_OPENSSL_
+// #define _NO_OPENSSL_
 
 // #define QUARTZ1273
 // #define QUARTZ103
@@ -29,6 +29,8 @@
 #endif
 #endif
 #endif
+
+#define AES_KEY_SIZE 32
 
 #ifdef QUARTZ96
 #define CORE_SIZE 96

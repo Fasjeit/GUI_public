@@ -7,6 +7,13 @@
 #include <bitset>
 #include <iostream>
 
+#ifndef _NO_OPENSSL_
+extern "C"
+{
+#include "fnr.h"
+}
+#endif
+
 template <unsigned width, unsigned times>
 inline void split_hash(VEC<width> hn[], const uint8_t *sha256_dig)
 {
@@ -22,7 +29,10 @@ inline void split_hash(VEC<width> hn[], const uint8_t *sha256_dig)
 		hn[3] = vec_t(&((const uint8_t *)dig2)[16]);
 }
 
-#include "quartz_core.h"
+inline void get_aes_key(unsigned char *h, const unsigned char *data, unsigned long datalen)
+{
+	crypto_hash_sha256(h, data, datalen);
+}
 
 typedef VEC<M + REPEAT *(MINUS + VINEGAR)> vec_sign_t;
 
@@ -188,6 +198,181 @@ int quartz_sign_mq(vec_sign_t &sm, const unsigned char *hash256, const quartz_se
 	}
 
 	memcpy(x, &tail, sizeof(tail));
+
+	return 0;
+}
+
+template <unsigned times>
+int quartz_sign_gui_fnr(
+	const unsigned char *nonce,
+	const unsigned long noncelen,
+	const unsigned char *key_material,
+	const unsigned long key_materiallen,
+	const quartz_sec_key_t &sk,
+	unsigned char s[M / 8 + 1],
+	unsigned char x[(MINUS + VINEGAR) * times / 8 + 1])
+{
+	uint8_t rand_seed[32];
+	uint64_t tail = 0;
+
+	vec_n_t nn;
+	vec_m_t accu_mm;
+
+	accu_mm = vec_m_t(s);
+
+	// compute fnr key(key_material)
+	// key_material = pk || m
+	// const unsigned int key_material_size = PUBLICKEY_BYTES + M / 8 + 1;
+	// unsigned char key_material[key_material_size];
+	// memset(key_material, 0, key_material_size);
+	// pk.dump(key_material);
+	// memcpy(&key_material[PUBLICKEY_BYTES], s, M / 8 + 1);
+
+	unsigned char aes_key[AES_KEY_SIZE];
+	get_aes_key(aes_key, key_material, key_materiallen);
+
+	// set fnr key
+	fnr_expanded_key *key = FNR_expand_key(aes_key, AES_KEY_SIZE * 8, M);
+	if (!key)
+	{
+		return -1;
+	}
+
+	// set nonce as tweak(nonce)
+	fnr_expanded_tweak tweak;
+	FNR_expand_tweak(&tweak, key, nonce, noncelen);
+
+	for (unsigned i = 0; i < times; i++)
+	{
+		memset(rand_seed, 0, 32);
+		((vec_m_t &)rand_seed) ^= accu_mm;
+
+		quartz_sec_map(nn, sk, accu_mm, rand_seed);
+
+		accu_mm = nn.template concate<M>();
+		uint64_t tmp = nn.template tail<MINUS + VINEGAR>();
+		tail = (tail << (MINUS + VINEGAR)) | tmp;
+
+		std::cout << "accu_mm before encryption:\n";
+		dump_dbg<M>(accu_mm);
+
+		// encrypt exept last iteration
+		if (i != times - 1)
+		{
+			// s = fnr(s)
+			// convert to byte array
+			accu_mm.dump(s);
+
+			// decrypt with fnr
+			FNR_decrypt(key, &tweak, s, s);
+
+			// convert to vector
+			accu_mm = vec_m_t(s);
+
+			std::cout << "accu_mm after encryption:\n";
+			dump_dbg<M>(accu_mm);
+		}
+
+		std::string binary = std::bitset<sizeof(uint64_t) * 8>(tmp).to_string(); // to binary
+		std::cout << binary << " tmp\n";
+	}
+
+	FNR_release_key(key);
+
+	accu_mm.dump(s);
+
+	memcpy(x, &tail, (MINUS + VINEGAR) * times / 8 + 1);
+
+	std::string binaryT = std::bitset<sizeof(uint64_t) * 8>(tail).to_string(); // to binary
+	std::cout << binaryT << " tail T\n";
+
+	uint64_t acuUintT = accu_mm.template tail<M>();
+	std::string accT = std::bitset<sizeof(uint64_t) * 8>(acuUintT).to_string(); // to binary
+	std::cout << accT << " tail current accu _mm (S)\n";
+
+	std::cout << "accu_mm tms is:\n";
+	dump_dbg<M>(accu_mm);
+
+	std::cout << "nn all would be is:\n";
+	dump_dbg<N>(nn);
+
+	return 0;
+}
+
+template <unsigned times>
+int quartz_verify_gui_fnr(
+	const unsigned char *nonce,
+	const unsigned long noncelen,
+	const unsigned char *key_material,
+	const unsigned long key_materiallen,
+	const quartz_pub_key_t &pk,
+	unsigned char s[M / 8 + 1],
+	unsigned char x[(MINUS + VINEGAR) * times / 8 + 1])
+{
+	uint64_t tmp = 0;
+	memcpy(&tmp, x, (MINUS + VINEGAR) * times / 8 + 1);
+
+	vec_n_t nn;
+	vec_m_t accu_check;
+
+	accu_check = vec_m_t(s);
+
+	unsigned char aes_key[AES_KEY_SIZE];
+	// memset(aes_key, 0, AES_KEY_SIZE);
+	get_aes_key(aes_key, key_material, key_materiallen);
+
+	// set fnr key
+	fnr_expanded_key *key = FNR_expand_key(aes_key, AES_KEY_SIZE * 8, M);
+	if (!key)
+	{
+		return -1;
+	}
+
+	// set nonce as tweak(nonce)
+	fnr_expanded_tweak tweak;
+	FNR_expand_tweak(&tweak, key, nonce, noncelen);
+
+	for (unsigned i = 0; i < times; i++)
+	{
+		std::cout << "accu_check before encryption:\n";
+		dump_dbg<M>(accu_check);
+
+		// encrypt exept fist iteration
+		if (i != 0)
+		{
+			// s = fnr(s)
+			// convert to byte array
+			accu_check.dump(s);
+
+			// encrypt with fnr
+			FNR_encrypt(key, &tweak, s, s);
+
+			// convert to vector
+			accu_check = vec_m_t(s);
+
+			std::cout << "accu_check after encryption:\n";
+			dump_dbg<M>(accu_check);
+		}
+
+		nn = accu_check.concate<M + MINUS + VINEGAR>(tmp);
+		mpkc_pub_map(accu_check, pk, nn);
+
+		std::string binary = std::bitset<sizeof(uint64_t) * 8>(tmp).to_string(); // to binary
+		std::cout << binary << " tmp\n";
+
+		tmp >>= (MINUS + VINEGAR);
+	}
+
+	FNR_release_key(key);
+
+	accu_check.dump(s);
+
+	uint64_t acuUintT = accu_check.template tail<M>();
+	std::string accT = std::bitset<sizeof(uint64_t) * 8>(acuUintT).to_string(); // to binary
+	std::cout << accT << " tail current accu accu_check (S)\n";
+
+	std::cout << "accu_check tms is:\n";
+	dump_dbg<M>(accu_check);
 
 	return 0;
 }

@@ -26,6 +26,30 @@ extern "C"
                    const unsigned char *, unsigned long long,
                    const unsigned char *, unsigned long long);
 
+  int sign_gui_fnr(
+      unsigned char *nonce,
+      unsigned long noncelen,
+      const unsigned char *key_material,
+      const unsigned long key_materiallen,
+      const unsigned char *sk,
+      unsigned long long sklen,
+      unsigned char *s,
+      unsigned long long slen,
+      unsigned char *x,
+      unsigned long long xlen);
+
+  int verify_gui_fnr(
+      unsigned char *nonce,
+      unsigned long noncelen,
+      const unsigned char *key_material,
+      const unsigned long key_materiallen,
+      const unsigned char *pk,
+      unsigned long long pklen,
+      unsigned char *s,
+      unsigned long long slen,
+      unsigned char *x,
+      unsigned long long xlen);
+
   int hfev(
       const unsigned char *sk,
       unsigned long long sklen,

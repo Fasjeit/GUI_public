@@ -71,7 +71,76 @@ extern "C" int signatureofshorthash_mq(unsigned char sm[SIGNATURE_BYTES], unsign
 	return 0;
 }
 
-extern "C" int hfev(
+extern "C" int sign_gui_fnr(
+	unsigned char *nonce,
+	unsigned long noncelen,
+	const unsigned char *key_material,
+	const unsigned long key_materiallen,
+	const unsigned char sk[SECRETKEY_BYTES],
+	unsigned long long sklen,
+	unsigned char s[M / 8 + 1],
+	unsigned long long slen,
+	unsigned char x[(MINUS + VINEGAR) * REPEAT / 8 + 1],
+	unsigned long long xlen)
+{
+	if (sklen != SECRETKEY_BYTES)
+		return -11;
+	// if (key_materiallen <= PUBKEY_BYTES)
+	// 	return -12;
+	if (slen != M / 8 + 1)
+		return -13;
+	if (xlen != (MINUS + VINEGAR) * REPEAT / 8 + 1)
+		return -14;
+
+	quartz_sec_key_t skey;
+	skey.set(sk);
+
+	return quartz_sign_gui_fnr<2>(
+		nonce,
+		noncelen,
+		key_material,
+		key_materiallen,
+		skey,
+		s,
+		x);
+}
+
+extern "C" int verify_gui_fnr(
+	unsigned char *nonce,
+	unsigned long noncelen,
+	const unsigned char *key_material,
+	const unsigned long key_materiallen,
+	const unsigned char pk[PUBKEY_BYTES],
+	unsigned long long pklen,
+	unsigned char s[M / 8 + 1],
+	unsigned long long slen,
+	unsigned char x[(MINUS + VINEGAR) * REPEAT / 8 + 1],
+	unsigned long long xlen)
+{
+	if (pklen != PUBKEY_BYTES)
+		return -11;
+	// if (key_materiallen <= PUBKEY_BYTES)
+	// 	return -12;
+	if (slen != M / 8 + 1)
+		return -13;
+	if (xlen != (MINUS + VINEGAR) * REPEAT / 8 + 1)
+		return -14;
+
+	quartz_pub_key_t pkey;
+	pkey.set(pk);
+
+	return quartz_verify_gui_fnr<2>(
+		nonce,
+		noncelen,
+		key_material,
+		key_materiallen,
+		pkey,
+		s,
+		x);
+}
+
+extern "C" int
+hfev(
 	const unsigned char sk[SECRETKEY_BYTES],
 	unsigned long long sklen,
 	unsigned char s[M / 8 + 1],
