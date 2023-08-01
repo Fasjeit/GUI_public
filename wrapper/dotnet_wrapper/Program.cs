@@ -4,8 +4,10 @@ using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using System.Runtime.ConstrainedExecution;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Security.Cryptography;
+using System.Text;
+using Microsoft.VisualBasic;
+using RijndaelNs;
 
 namespace wrapper;
 
@@ -14,6 +16,53 @@ class Program
     unsafe static void Main(string[] args)
     {
         Console.WriteLine("Hello, World!");
+
+        IntPtr pkptr = IntPtr.Zero;
+        IntPtr skptr = IntPtr.Zero;
+
+        byte[] pkbytes = new byte[1000000];
+        byte[] skbytes = new byte[1000000];
+
+        GCHandle pinnedArrayPk = GCHandle.Alloc(pkbytes, GCHandleType.Pinned);
+        GCHandle pinnedArraySk = GCHandle.Alloc(skbytes, GCHandleType.Pinned);
+        pkptr = pinnedArrayPk.AddrOfPinnedObject();
+        skptr = pinnedArraySk.AddrOfPinnedObject();
+        // Do your stuff...
+
+        Program.Externc.crypto_sign_keypair(pkptr, skptr);
+
+        pinnedArrayPk.Free();
+        pinnedArraySk.Free();
+
+        byte[] key = new byte[32];
+        byte[] data = new byte[32];
+        data[2] = 2;
+
+        Stopwatch swr = new Stopwatch();
+        swr.Start();
+        for (int i = 0; i < 10000; i++)
+        {
+
+            byte[] enc = RijndaelM.EncryptData(
+                data,
+                key,
+                new byte[] { },
+                RijndaelM.BlockSize.Block256,
+                RijndaelM.KeySize.Key256,
+                RijndaelM.EncryptionMode.ModeECB);
+
+            byte[] dec = RijndaelM.DecryptData(
+                enc,
+                key,
+                new byte[] { },
+                RijndaelM.BlockSize.Block256,
+                RijndaelM.KeySize.Key256,
+                RijndaelM.EncryptionMode.ModeECB);
+        }
+        swr.Stop();
+        Console.WriteLine($"RijndaelM {(swr.Elapsed / 10000).TotalMilliseconds} ms");
+
+        //return;
 
         var test = new byte[12];
         var hash = new byte[32];
@@ -36,7 +85,7 @@ class Program
         }
         swh.Stop();
         Console.WriteLine($"dotnet hash x32 {(swh.Elapsed / 1000).TotalMilliseconds} ms");
-        //return;
+        return;
         // Console.WriteLine(ByteArrayToString(test));
 
         //var t = Program.Externc.test_function_c(7);
@@ -167,6 +216,8 @@ class Program
 
         private const string Libqa = "/mnt/c/git/GUI_public/gui96566/ref/libquartz.so";
 
+        private const string Libuov = "/mnt/c/git/pqov-paper/libuov.so";
+
         // [DllImport(Externc.LibPath_c, EntryPoint = "test_function")]
         // internal static extern int test_function_c(
         //     int sm);
@@ -251,6 +302,12 @@ class Program
                     byte[] h,
                     byte[] m,
                     long mlen);
+
+
+        [DllImport(Externc.Libuov, EntryPoint = "crypto_sign_keypair", CallingConvention = CallingConvention.StdCall)]
+        internal static extern void crypto_sign_keypair(
+            IntPtr pk,
+            IntPtr sk);
 
 
         // extern "C" int hfev(
